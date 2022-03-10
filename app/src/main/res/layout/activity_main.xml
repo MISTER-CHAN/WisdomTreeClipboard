@@ -21,28 +21,65 @@
         android:orientation="vertical"
         android:visibility="gone">
 
-
-        <ScrollView
-            android:id="@+id/sv_questions"
+        <LinearLayout
+            android:id="@+id/ll_work"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone">
 
-            <LinearLayout
-                android:id="@+id/ll_questions"
+            <ScrollView
+                android:id="@+id/sv_questions"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+
+                <LinearLayout
+                    android:id="@+id/ll_questions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical" />
+            </ScrollView>
+
+            <Button
+                android:id="@+id/b_answer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="vertical" />
-        </ScrollView>
+                android:onClick="answer"
+                android:text="填上答案并复制下题题目"
+                android:visibility="gone" />
 
-        <Button
-            android:id="@+id/b_answer"
+            <Button
+                android:id="@+id/b_match"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="matchHomework"
+                android:text="匹配题目" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_video"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:enabled="false"
-            android:onClick="answer"
-            android:text="填上答案并复制下题题目" />
+            android:layout_height="match_parent"
+            android:gravity="bottom|center_horizontal"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <Button
+                android:id="@+id/b_zoom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:text="缩放" />
+
+            <Button
+                android:id="@+id/b_set_speed_rate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:text="调速" />
+        </LinearLayout>
     </LinearLayout>
 
     <Button

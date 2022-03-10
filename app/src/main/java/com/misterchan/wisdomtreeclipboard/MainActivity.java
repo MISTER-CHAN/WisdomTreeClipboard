@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.webkit.ValueCallback;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -41,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
             "            var answerNodeLabs = questionSubject.getElementsByClassName(\"nodeLab\");" +
             "            answer = answer.replace(/\\s/g, \"\").replace(/。$/, \"\");" +
             "            for (let i = 0; i < answerNodeLabs.length; ++i) {" +
-            "                let examQuestionsAnswer = answerNodeLabs[i].getElementsByClassName(\"label clearfix\")[0].children[2], examQuestionsAnswerTextContent = examQuestionsAnswer.textContent.replace(/\\s/g, \"\");" +
+            "                let examQuestionsAnswer = answerNodeLabs[i].getElementsByClassName(\"label clearfix\")[0].children[2], examQuestionsAnswerTextContent = examQuestionsAnswer.textContent.replace(/\\s/g, \"\").replace(/。$/, \"\");" +
             "                result += answerNodeLabs[i].textContent;" +
             "                if (examQuestionsAnswerTextContent == answer || examQuestionsAnswerTextContent == \"√\" && CORRECT.includes(answer) || examQuestionsAnswerTextContent == \"×\" && INCORRECT.includes(answer)) {" +
             "                    answerNodeLabs[i].click();" +
@@ -57,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
             "            for (let i = 0; i < answerNodeLabs.length; ++i) {" +
             "                let examQuestionsAnswer = answerNodeLabs[i].getElementsByClassName(\"label clearfix\")[0].children[1];" +
             "                result += answerNodeLabs[i].textContent;" +
-            "                let b = answer.includes(examQuestionsAnswer.textContent.replace(/\\s/g, \"\"));" +
+            "                let b = answer.includes(examQuestionsAnswer.textContent.replace(/\\s/g, \"\").replace(/。$/, \"\"));" +
             "                if (b ^ examQuestionsAnswer.className == \"node_detail examquestions-answer fl onChecked\") {" +
             "                    answerNodeLabsToBeClicked.push(answerNodeLabs[i]);" +
             "                }" +
@@ -92,16 +91,6 @@ public class MainActivity extends AppCompatActivity {
             "    }" +
             "    return result;" +
             "})()";
-
-    private static final String JS_CLOSE_XUEQIANBIDU = "javascript:" +
-            "var closingXueqianbiduTimer = setInterval(() => {" +
-            "    let icons = document.getElementsByClassName(\"iconfont iconguanbi\");" +
-            " alert('hi');" +
-            "    if (icons.length > 0) {" +
-            "        clearInterval(closingXueqianbiduTimer);" +
-            "        icons[0].click();" +
-            "    }" +
-            "}, 1000)";
 
     private static final String JS_QUESTIONS = "" +
             "(function () {" +
@@ -146,11 +135,11 @@ public class MainActivity extends AppCompatActivity {
     private static final String JS_ZOOM = "javascript:" +
             "document.getElementsByName(\"viewport\")[0].setAttribute(\"content\",\"width=device-width,initial-scale=0.25\")";
 
-    private Button bAnswer;
+    private Button bAnswer, bMatch;
     private ClipboardManager clipboardManager;
     private int number = 0;
     private LayoutInflater layoutInflater;
-    private LinearLayout llControl, llQuestions;
+    private LinearLayout llControl, llQuestions, llVideo, llWork;
     private ScrollView svQuestions;
     private String[] questions;
     private WebView webView;
@@ -176,9 +165,9 @@ public class MainActivity extends AppCompatActivity {
         public void onPageFinished(WebView view, String url) {
             webView.getSettings().setBlockNetworkImage(false);
             if (url.startsWith(DO_HOMEWORK_URL_PREFIX)) {
-                addMatchButton();
+                bringLayoutToFront(llWork);
             } else if (url.startsWith(STUDY_VIDEO_URL_PREFIX)) {
-                addVideoButton();
+                bringLayoutToFront(llVideo);
             }
             super.onPageFinished(view, url);
         }
@@ -186,43 +175,14 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             webView.getSettings().setBlockNetworkImage(true);
-            if (!url.startsWith(DO_HOMEWORK_URL_PREFIX)) {
-                llQuestions.removeAllViews();
-                bAnswer.setEnabled(false);
-                number = 0;
-            }
+            bringWorkButtonToFront(bMatch);
+            bringLayoutToFront();
+            llQuestions.removeAllViews();
+            bAnswer.setEnabled(false);
+            number = 0;
             super.onPageStarted(view, url, favicon);
         }
     };
-
-    private void addMatchButton() {
-        llQuestions.removeAllViews();
-        Button button = new Button(this);
-        button.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        button.setText("匹配题目");
-        button.setOnClickListener(view -> {
-            view.setEnabled(false);
-            matchHomework();
-        });
-        llQuestions.addView(button);
-    }
-
-    private void addVideoButton() {
-        llQuestions.removeAllViews();
-        Button button;
-
-        button = new Button(this);
-        button.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        button.setText("缩放");
-        button.setOnClickListener(view -> webView.loadUrl(JS_ZOOM));
-        llQuestions.addView(button);
-
-        button = new Button(this);
-        button.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        button.setText("调速");
-        button.setOnClickListener(view -> webView.loadUrl(JS_SET_SPEED_RATE));
-        llQuestions.addView(button);
-    }
 
     public void answer(View view) {
         if (clipboardManager.hasPrimaryClip()) {
@@ -246,13 +206,24 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Answer a question.
      */
+    @SuppressLint("DefaultLocale")
     private void answer(int number, String answer) {
-        webView.evaluateJavascript(String.format(JS_ANSWERS, number, answer.replace("\n", "")), new ValueCallback<String>() {
-            @Override
-            public void onReceiveValue(String value) {
-                ((TextView) (llQuestions.getChildAt(number - 1)).findViewById(R.id.tv_answer)).setText(value.substring(1, value.length() - 1).replace("\\n", "\n"));
-            }
-        });
+        webView.evaluateJavascript(String.format(JS_ANSWERS, number, answer.replace("\n", "").replace("\"", "'")),
+                value -> ((TextView) (llQuestions.getChildAt(number - 1)).findViewById(R.id.tv_answer)).setText(value.substring(1, value.length() - 1).replace("\\n", "\n")));
+    }
+
+    private void bringWorkButtonToFront(View view) {
+        bAnswer.setVisibility(view == bAnswer ? View.VISIBLE : View.GONE);
+        bMatch.setVisibility(view == bMatch ? View.VISIBLE : View.GONE);
+    }
+
+    private void bringLayoutToFront() {
+        bringLayoutToFront(null);
+    }
+
+    private void bringLayoutToFront(View view) {
+        llVideo.setVisibility(view == llVideo ? View.VISIBLE : View.GONE);
+        llWork.setVisibility(view == llWork ? View.VISIBLE : View.GONE);
     }
 
     public void copyQuestion(View v) {
@@ -269,6 +240,11 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(MainActivity.this, "已复制第 " + number + " 题题目", Toast.LENGTH_SHORT).show();
     }
 
+    public void matchHomework(View view) {
+        bringWorkButtonToFront(bAnswer);
+        matchHomework();
+    }
+
     /**
      * Get all the questions from web.
      */
@@ -282,7 +258,7 @@ public class MainActivity extends AppCompatActivity {
                 questions = qAndA[0].split(",,");
                 showQuestions(questions, qAndA[1].split(",,"));
             } else {
-                runOnUiThread(this::addMatchButton);
+                runOnUiThread(() -> bringWorkButtonToFront(bMatch));
             }
         });
     }
@@ -294,13 +270,18 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         bAnswer = findViewById(R.id.b_answer);
+        bMatch = findViewById(R.id.b_match);
         clipboardManager = ((ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE));
         layoutInflater = LayoutInflater.from(this);
         llControl = findViewById(R.id.ll_control);
         llQuestions = findViewById(R.id.ll_questions);
+        llVideo = findViewById(R.id.ll_video);
+        llWork = findViewById(R.id.ll_work);
         svQuestions = findViewById(R.id.sv_questions);
 
         findViewById(R.id.b_questions).setOnLongClickListener(onQuestionsButtonLongClickListener);
+        findViewById(R.id.b_set_speed_rate).setOnClickListener(view -> webView.loadUrl(JS_SET_SPEED_RATE));
+        findViewById(R.id.b_zoom).setOnClickListener(view -> webView.loadUrl(JS_ZOOM));
 
         webView = findViewById(R.id.wv);
         WebSettings ws = webView.getSettings();
@@ -323,16 +304,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK && webView.canGoBack()) {
+    public void onBackPressed() {
+        if (webView.canGoBack()) {
+            bringWorkButtonToFront(bMatch);
+            bringLayoutToFront();
             webView.goBack();
             if (webView.getVisibility() == View.GONE) {
                 llControl.setVisibility(View.GONE);
                 webView.setVisibility(View.VISIBLE);
             }
-            return true;
+        } else {
+            super.onBackPressed();
         }
-        return super.onKeyDown(keyCode, event);
     }
 
     /**
