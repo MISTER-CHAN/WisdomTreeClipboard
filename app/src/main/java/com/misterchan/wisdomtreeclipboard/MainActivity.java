@@ -8,10 +8,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.webkit.ValueCallback;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -30,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String JS_ANSWERS = "" +
             "var answerNodeLabsToBeClicked = [], timer = {};" +
-            "(function () {" +
+            "(() => {" +
             "    const CORRECT = [\"√\", \"对\", \"正确\"], INCORRECT = [\"×\", \"错\", \"错误\"];" +
             "    let number = %d, answer = \"%s\";" +
             "    let result = \"\";" +
@@ -92,8 +90,37 @@ public class MainActivity extends AppCompatActivity {
             "    return result;" +
             "})()";
 
+    private static final String JS_AUTO_PLAY = "javascript:" +
+            "var isPlaying = false;" +
+            "setInterval(() => {" +
+            "    if (document.getElementsByClassName(\"speedBox\")[0].textContent != \"X 1.5X 1.5X 1.25X 1.0\") {" +
+            "        let speedTab = document.getElementsByClassName(\"speedTab speedTab15\")[0];" +
+            "        speedTab.setAttribute(\"rate\", 15);" +
+            "        speedTab.click();" +
+            "    }" +
+            "    let currentPlay = document.getElementsByClassName(\"clearfix video current_play\")[0];" +
+            "    if (currentPlay.getElementsByClassName(\"fl time_icofinish\").length > 0) {" +
+            "        if (isPlaying) {" +
+            "            isPlaying = false;" +
+            "            document.getElementById(\"nextBtn\").click();" +
+            "        }" +
+            "    } else {" +
+            "        isPlaying = true;" +
+            "    }" +
+            "}, 1000);";
+
+    private static final String JS_DIALOG_TEST = "javascript:" +
+            "setInterval(() => {" +
+            "    let dialog = document.getElementsByClassName(\"el-dialog\")[5];" +
+            "    if (dialog != undefined && dialog.getAttribute(\"aria-label\") == \"弹题测验\") {" +
+            "        dialog.getElementsByClassName(\"topic-item\")[0].click();" +
+            "        dialog.getElementsByClassName(\"el-dialog__headerbtn\")[0].click();" +
+            "        document.getElementById(\"vjs_container_html5_api\").play();" +
+            "    }" +
+            "}, 1000);";
+
     private static final String JS_QUESTIONS = "" +
-            "(function () {" +
+            "(() => {" +
             "    var questionSubjects = document.getElementsByClassName(\"examPaper_subject mt20\"), questions = [], answers = [];" +
             "    for (var i = 0; i < questionSubjects.length; ++i) {" +
             "        questions.push(questionSubjects[i].getElementsByClassName(\"subject_describe dynamic-fonts\")[0].textContent);" +
@@ -130,16 +157,17 @@ public class MainActivity extends AppCompatActivity {
             "if (speedTabs.length > 0) {" +
             "    speedTabs[0].setAttribute(\"rate\", 15);" +
             "    speedTabs[0].click();" +
+            "    document.getElementById(\"vjs_container_html5_api\").play();" +
             "}";
 
     private static final String JS_ZOOM = "javascript:" +
             "document.getElementsByName(\"viewport\")[0].setAttribute(\"content\",\"width=device-width,initial-scale=0.25\")";
 
-    private Button bAnswer, bMatch;
+    private Button bAnswer, bMatch, bQuestions;
     private ClipboardManager clipboardManager;
     private int number = 0;
     private LayoutInflater layoutInflater;
-    private LinearLayout llControl, llQuestions, llVideo, llWork;
+    private LinearLayout llControl, llQuestions, llWork;
     private ScrollView svQuestions;
     private String[] questions;
     private WebView webView;
@@ -165,9 +193,12 @@ public class MainActivity extends AppCompatActivity {
         public void onPageFinished(WebView view, String url) {
             webView.getSettings().setBlockNetworkImage(false);
             if (url.startsWith(DO_HOMEWORK_URL_PREFIX)) {
-                bringLayoutToFront(llWork);
+                bQuestions.setVisibility(View.VISIBLE);
             } else if (url.startsWith(STUDY_VIDEO_URL_PREFIX)) {
-                bringLayoutToFront(llVideo);
+                bQuestions.setVisibility(View.INVISIBLE);
+                webView.loadUrl(JS_DIALOG_TEST);
+                webView.loadUrl(JS_AUTO_PLAY);
+                webView.loadUrl(JS_ZOOM);
             }
             super.onPageFinished(view, url);
         }
@@ -176,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             webView.getSettings().setBlockNetworkImage(true);
             bringWorkButtonToFront(bMatch);
-            bringLayoutToFront();
+            bQuestions.setVisibility(View.INVISIBLE);
             llQuestions.removeAllViews();
             bAnswer.setEnabled(false);
             number = 0;
@@ -215,15 +246,6 @@ public class MainActivity extends AppCompatActivity {
     private void bringWorkButtonToFront(View view) {
         bAnswer.setVisibility(view == bAnswer ? View.VISIBLE : View.GONE);
         bMatch.setVisibility(view == bMatch ? View.VISIBLE : View.GONE);
-    }
-
-    private void bringLayoutToFront() {
-        bringLayoutToFront(null);
-    }
-
-    private void bringLayoutToFront(View view) {
-        llVideo.setVisibility(view == llVideo ? View.VISIBLE : View.GONE);
-        llWork.setVisibility(view == llWork ? View.VISIBLE : View.GONE);
     }
 
     public void copyQuestion(View v) {
@@ -271,17 +293,13 @@ public class MainActivity extends AppCompatActivity {
 
         bAnswer = findViewById(R.id.b_answer);
         bMatch = findViewById(R.id.b_match);
+        bQuestions = findViewById(R.id.b_questions);
         clipboardManager = ((ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE));
         layoutInflater = LayoutInflater.from(this);
         llControl = findViewById(R.id.ll_control);
         llQuestions = findViewById(R.id.ll_questions);
-        llVideo = findViewById(R.id.ll_video);
         llWork = findViewById(R.id.ll_work);
         svQuestions = findViewById(R.id.sv_questions);
-
-        findViewById(R.id.b_questions).setOnLongClickListener(onQuestionsButtonLongClickListener);
-        findViewById(R.id.b_set_speed_rate).setOnClickListener(view -> webView.loadUrl(JS_SET_SPEED_RATE));
-        findViewById(R.id.b_zoom).setOnClickListener(view -> webView.loadUrl(JS_ZOOM));
 
         webView = findViewById(R.id.wv);
         WebSettings ws = webView.getSettings();
@@ -293,6 +311,7 @@ public class MainActivity extends AppCompatActivity {
         ws.setDomStorageEnabled(true);
         ws.setJavaScriptEnabled(true);
         ws.setLoadWithOverviewMode(true);
+        ws.setMediaPlaybackRequiresUserGesture(false);
         ws.setSupportMultipleWindows(false);
         ws.setSupportZoom(true);
         ws.setUseWideViewPort(true);
@@ -307,7 +326,7 @@ public class MainActivity extends AppCompatActivity {
     public void onBackPressed() {
         if (webView.canGoBack()) {
             bringWorkButtonToFront(bMatch);
-            bringLayoutToFront();
+            bQuestions.setVisibility(View.INVISIBLE);
             webView.goBack();
             if (webView.getVisibility() == View.GONE) {
                 llControl.setVisibility(View.GONE);
@@ -330,7 +349,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void showHideQuestionsView(View v) {
-        llControl.setVisibility(8 - llControl.getVisibility());
+        llWork.setVisibility(8 - llWork.getVisibility());
         webView.setVisibility(8 - webView.getVisibility());
     }
 
@@ -338,7 +357,7 @@ public class MainActivity extends AppCompatActivity {
      * Show the questions.
      */
     private void showQuestions(String[] questions, String[] answers) {
-        for (int i = 0; i < questions.length; i++) {
+        for (int i = 0; i < questions.length; ++i) {
             LinearLayout layout = (LinearLayout) layoutInflater.inflate(R.layout.question, null);
 
             // Question
