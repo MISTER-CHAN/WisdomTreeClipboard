@@ -239,7 +239,7 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("DefaultLocale")
     private void copyQuestion(int number, String question) {
         clipboardManager.setPrimaryClip(ClipData.newPlainText("Label", question));
-        Toast.makeText(MainActivity.this, String.format("已复制第 %d 题题目", number), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, String.format("已复制第 %d 题题目", number), Toast.LENGTH_SHORT).show();
     }
 
     public void matchHomework(View view) {
@@ -248,14 +248,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Get all the questions from web.
+     * Get all questions from web.
      */
     private void matchHomework() {
         webView.evaluateJavascript(JS_QUESTIONS, value -> {
             String[] qAndA;
             if (!"null".equals(value) && (qAndA = value.substring(1, value.length() - 1).replace("\\n", "\n").split(",,,")).length == 2) {
-                // qAndA[0] - all the questions.
-                // qAndA[1] - all the answers.
+                // qAndA[0] - all questions.
+                // qAndA[1] - all answers.
                 llQuestions.removeAllViews();
                 questions = qAndA[0].split(",,");
                 showQuestions(questions, qAndA[1].split(",,"));
