@@ -93,11 +93,20 @@ public class MainActivity extends AppCompatActivity {
     private static final String JS_AUTO_PLAY = "javascript:" +
             "var isPlaying = false;" +
             "setInterval(() => {" +
+            "" +
+            "    let dialog = document.getElementsByClassName(\"el-dialog\")[5];" +
+            "    if (dialog != undefined && dialog.getAttribute(\"aria-label\") == \"弹题测验\") {" +
+            "        dialog.getElementsByClassName(\"topic-item\")[0].click();" +
+            "        dialog.getElementsByClassName(\"el-dialog__headerbtn\")[0].click();" +
+            "        document.getElementById(\"vjs_container_html5_api\").play();" +
+            "    }" +
+            "" +
             "    if (document.getElementsByClassName(\"speedBox\")[0].textContent != \"X 1.5X 1.5X 1.25X 1.0\") {" +
             "        let speedTab = document.getElementsByClassName(\"speedTab speedTab15\")[0];" +
             "        speedTab.setAttribute(\"rate\", 15);" +
             "        speedTab.click();" +
             "    }" +
+            "" +
             "    let currentPlay = document.getElementsByClassName(\"clearfix video current_play\")[0];" +
             "    if (currentPlay.getElementsByClassName(\"fl time_icofinish\").length > 0) {" +
             "        if (isPlaying) {" +
@@ -107,19 +116,11 @@ public class MainActivity extends AppCompatActivity {
             "    } else {" +
             "        isPlaying = true;" +
             "    }" +
+            "" +
             "    if (document.getElementById(\"playButton\").getAttribute(\"class\") == \"playButton\") {" +
             "        document.getElementById(\"vjs_container_html5_api\").play();" +
             "    }" +
-            "}, 1000);";
-
-    private static final String JS_DIALOG_TEST = "javascript:" +
-            "setInterval(() => {" +
-            "    let dialog = document.getElementsByClassName(\"el-dialog\")[5];" +
-            "    if (dialog != undefined && dialog.getAttribute(\"aria-label\") == \"弹题测验\") {" +
-            "        dialog.getElementsByClassName(\"topic-item\")[0].click();" +
-            "        dialog.getElementsByClassName(\"el-dialog__headerbtn\")[0].click();" +
-            "        document.getElementById(\"vjs_container_html5_api\").play();" +
-            "    }" +
+            "" +
             "}, 1000);";
 
     private static final String JS_QUESTIONS = "" +
@@ -174,7 +175,6 @@ public class MainActivity extends AppCompatActivity {
             if (url.startsWith(URL_PREFIX_DO_HOMEWORK)) {
                 bQuestions.setVisibility(View.VISIBLE);
             } else if (url.startsWith(URL_PREFIX_STUDY_VIDEO)) {
-                webView.loadUrl(JS_DIALOG_TEST);
                 webView.loadUrl(JS_AUTO_PLAY);
                 webView.loadUrl(JS_ZOOM);
             }
