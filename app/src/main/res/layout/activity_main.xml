@@ -52,7 +52,6 @@
             android:text="匹配题目" />
     </LinearLayout>
 
-
     <LinearLayout
         android:id="@+id/ll_control"
         android:layout_width="match_parent"

@@ -23,8 +23,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String DO_HOMEWORK_URL_PREFIX = "https://onlineexamh5new.zhihuishu.com/stuExamWeb.html#/webExamList/dohomework/";
-    private static final String STUDY_VIDEO_URL_PREFIX = "https://studyh5.zhihuishu.com/videoStudy.html#/";
+    private static final String URL_PREFIX_DO_HOMEWORK = "https://onlineexamh5new.zhihuishu.com/stuExamWeb.html#/webExamList/dohomework/";
+    private static final String URL_PREFIX_STUDY_VIDEO = "https://studyh5.zhihuishu.com/videoStudy.html#/";
 
     private static final String JS_ANSWERS = "" +
             "var answerNodeLabsToBeClicked = [], timer = {};" +
@@ -152,14 +152,6 @@ public class MainActivity extends AppCompatActivity {
             "    return questions.join(\",,\") + \",,,\" + answers.join(\",,\");" +
             "})()";
 
-    private static final String JS_SET_SPEED_RATE = "javascript:" +
-            "var speedTabs = document.getElementsByClassName(\"speedTab speedTab15\");" +
-            "if (speedTabs.length > 0) {" +
-            "    speedTabs[0].setAttribute(\"rate\", 15);" +
-            "    speedTabs[0].click();" +
-            "    document.getElementById(\"vjs_container_html5_api\").play();" +
-            "}";
-
     private static final String JS_ZOOM = "javascript:" +
             "document.getElementsByName(\"viewport\")[0].setAttribute(\"content\",\"width=device-width,initial-scale=0.25\")";
 
@@ -167,35 +159,18 @@ public class MainActivity extends AppCompatActivity {
     private ClipboardManager clipboardManager;
     private int number = 0;
     private LayoutInflater layoutInflater;
-    private LinearLayout llControl, llQuestions, llWork;
+    private LinearLayout llQuestions, llWork;
     private ScrollView svQuestions;
     private String[] questions;
     private WebView webView;
-
-    private final View.OnLongClickListener onQuestionsButtonLongClickListener = new View.OnLongClickListener() {
-        @Override
-        public boolean onLongClick(View view) {
-            if (clipboardManager.hasPrimaryClip()) {
-                String text = clipboardManager.getPrimaryClip().getItemAt(0).getText().toString();
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setTitle("前往");
-                builder.setMessage(text);
-                builder.setPositiveButton("确定", (dialog, which) -> webView.loadUrl(text));
-                builder.show();
-                return true;
-            }
-            return false;
-        }
-    };
 
     private final WebViewClient webViewClient = new WebViewClient() {
         @Override
         public void onPageFinished(WebView view, String url) {
             webView.getSettings().setBlockNetworkImage(false);
-            if (url.startsWith(DO_HOMEWORK_URL_PREFIX)) {
+            if (url.startsWith(URL_PREFIX_DO_HOMEWORK)) {
                 bQuestions.setVisibility(View.VISIBLE);
-            } else if (url.startsWith(STUDY_VIDEO_URL_PREFIX)) {
-                bQuestions.setVisibility(View.INVISIBLE);
+            } else if (url.startsWith(URL_PREFIX_STUDY_VIDEO)) {
                 webView.loadUrl(JS_DIALOG_TEST);
                 webView.loadUrl(JS_AUTO_PLAY);
                 webView.loadUrl(JS_ZOOM);
@@ -206,9 +181,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             webView.getSettings().setBlockNetworkImage(true);
-            bringWorkButtonToFront(bMatch);
             bQuestions.setVisibility(View.INVISIBLE);
             llQuestions.removeAllViews();
+            bringWorkButtonToFront(bMatch);
             bAnswer.setEnabled(false);
             number = 0;
             super.onPageStarted(view, url, favicon);
@@ -257,9 +232,10 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Copy a question.
      */
+    @SuppressLint("DefaultLocale")
     private void copyQuestion(int number, String question) {
         clipboardManager.setPrimaryClip(ClipData.newPlainText("Label", question));
-        Toast.makeText(MainActivity.this, "已复制第 " + number + " 题题目", Toast.LENGTH_SHORT).show();
+        Toast.makeText(MainActivity.this, String.format("已复制第 %d 题题目", number), Toast.LENGTH_SHORT).show();
     }
 
     public void matchHomework(View view) {
@@ -296,7 +272,6 @@ public class MainActivity extends AppCompatActivity {
         bQuestions = findViewById(R.id.b_questions);
         clipboardManager = ((ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE));
         layoutInflater = LayoutInflater.from(this);
-        llControl = findViewById(R.id.ll_control);
         llQuestions = findViewById(R.id.ll_questions);
         llWork = findViewById(R.id.ll_work);
         svQuestions = findViewById(R.id.sv_questions);
@@ -329,7 +304,7 @@ public class MainActivity extends AppCompatActivity {
             bQuestions.setVisibility(View.INVISIBLE);
             webView.goBack();
             if (webView.getVisibility() == View.GONE) {
-                llControl.setVisibility(View.GONE);
+                llWork.setVisibility(View.GONE);
                 webView.setVisibility(View.VISIBLE);
             }
         } else {
@@ -354,8 +329,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Show the questions.
+     * Show questions.
      */
+    @SuppressLint("DefaultLocale")
     private void showQuestions(String[] questions, String[] answers) {
         for (int i = 0; i < questions.length; ++i) {
             LinearLayout layout = (LinearLayout) layoutInflater.inflate(R.layout.question, null);
@@ -363,7 +339,7 @@ public class MainActivity extends AppCompatActivity {
             // Question
             TextView tvQuestion = layout.findViewById(R.id.tv_question);
             int number = i + 1;
-            tvQuestion.setText(number + " " + questions[i]);
+            tvQuestion.setText(String.format("%d %s", number, questions[i]));
             tvQuestion.setTag(number);
 
             // Answer
