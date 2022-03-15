@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -105,6 +106,9 @@ public class MainActivity extends AppCompatActivity {
             "        }" +
             "    } else {" +
             "        isPlaying = true;" +
+            "    }" +
+            "    if (document.getElementById(\"playButton\").getAttribute(\"class\") == \"playButton\") {" +
+            "        document.getElementById(\"vjs_container_html5_api\").play();" +
             "    }" +
             "}, 1000);";
 
@@ -276,7 +280,10 @@ public class MainActivity extends AppCompatActivity {
         llWork = findViewById(R.id.ll_work);
         svQuestions = findViewById(R.id.sv_questions);
 
-        webView = findViewById(R.id.wv);
+        webView = new MediaWebView(this);
+        webView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        ((LinearLayout) findViewById(R.id.ll_wv)).addView(webView);
+
         WebSettings ws = webView.getSettings();
         ws.setAllowFileAccess(true);
         ws.setAppCacheEnabled(false);
