@@ -1,7 +1,6 @@
 package com.misterchan.wisdomtreeclipboard;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -206,6 +205,7 @@ public class MainActivity extends AppCompatActivity {
                     svQuestions.smoothScrollTo(0, y);
                 }
             }
+
         }
     }
 
