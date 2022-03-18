@@ -163,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
     private ClipboardManager clipboardManager;
     private int number = 0;
     private LayoutInflater layoutInflater;
-    private LinearLayout llQuestions, llWork;
+    private LinearLayout llQuestions, llWork, llWebView;
     private ScrollView svQuestions;
     private String[] questions;
     private WebView webView;
@@ -278,6 +278,7 @@ public class MainActivity extends AppCompatActivity {
         layoutInflater = LayoutInflater.from(this);
         llQuestions = findViewById(R.id.ll_questions);
         llWork = findViewById(R.id.ll_work);
+        llWebView = findViewById(R.id.ll_wv);
         svQuestions = findViewById(R.id.sv_questions);
 
         webView = new MediaWebView(this);
@@ -310,9 +311,9 @@ public class MainActivity extends AppCompatActivity {
             bringWorkButtonToFront(bMatch);
             bQuestions.setVisibility(View.INVISIBLE);
             webView.goBack();
-            if (webView.getVisibility() == View.GONE) {
+            if (llWebView.getVisibility() == View.GONE) {
                 llWork.setVisibility(View.GONE);
-                webView.setVisibility(View.VISIBLE);
+                llWebView.setVisibility(View.VISIBLE);
             }
         } else {
             super.onBackPressed();
@@ -331,8 +332,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void showHideQuestionsView(View v) {
-        llWork.setVisibility(8 - llWork.getVisibility());
-        webView.setVisibility(8 - webView.getVisibility());
+        llWork.setVisibility(llWork.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
+        llWebView.setVisibility(llWebView.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
     }
 
     /**
