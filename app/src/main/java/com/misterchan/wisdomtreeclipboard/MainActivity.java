@@ -101,6 +101,11 @@ public class MainActivity extends AppCompatActivity {
             "        document.getElementById(\"vjs_container_html5_api\").play();" +
             "    }" +
             "" +
+            "    let defini = document.getElementsByClassName(\"definiBox\")[0];" +
+            "    if (defini != undefined && defini.firstChild.textContent != \"流畅\") {" +
+            "        defini.getElementsByClassName(\"line1bq switchLine\")[0].click();" +
+            "    }" +
+            "" +
             "    if (document.getElementsByClassName(\"speedBox\")[0].textContent != \"X 1.5X 1.5X 1.25X 1.0\") {" +
             "        let speedTab = document.getElementsByClassName(\"speedTab speedTab15\")[0];" +
             "        speedTab.setAttribute(\"rate\", 15);" +
