@@ -36,9 +36,9 @@ public class MainActivity extends AppCompatActivity {
             "    switch (questionSubject.getElementsByClassName(\"subject_type\")[0].children[0].textContent) {" +
             "        case \"【单选题】\":" +
             "            var answerNodeLabs = questionSubject.getElementsByClassName(\"nodeLab\");" +
-            "            answer = answer.replace(/\\s/g, \"\").replace(/。$/, \"\");" +
+            "            answer = answer.replace(/\\s/g, \"\").replace(/[;。；]$/, \"\");" +
             "            for (let i = 0; i < answerNodeLabs.length; ++i) {" +
-            "                let examQuestionsAnswer = answerNodeLabs[i].getElementsByClassName(\"label clearfix\")[0].children[2], examQuestionsAnswerTextContent = examQuestionsAnswer.textContent.replace(/\\s/g, \"\").replace(/。$/, \"\");" +
+            "                let examQuestionsAnswer = answerNodeLabs[i].getElementsByClassName(\"label clearfix\")[0].children[2], examQuestionsAnswerTextContent = examQuestionsAnswer.textContent.replace(/\\s/g, \"\").replace(/[;。；]$/, \"\");" +
             "                result += answerNodeLabs[i].textContent;" +
             "                if (examQuestionsAnswerTextContent == answer || examQuestionsAnswerTextContent == \"√\" && CORRECT.includes(answer) || examQuestionsAnswerTextContent == \"×\" && INCORRECT.includes(answer)) {" +
             "                    answerNodeLabs[i].click();" +
@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
             "            for (let i = 0; i < answerNodeLabs.length; ++i) {" +
             "                let examQuestionsAnswer = answerNodeLabs[i].getElementsByClassName(\"label clearfix\")[0].children[1];" +
             "                result += answerNodeLabs[i].textContent;" +
-            "                let b = answer.includes(examQuestionsAnswer.textContent.replace(/\\s/g, \"\").replace(/。$/, \"\"));" +
+            "                let b = answer.includes(examQuestionsAnswer.textContent.replace(/\\s/g, \"\").replace(/[;。；]$/, \"\"));" +
             "                if (b ^ examQuestionsAnswer.className == \"node_detail examquestions-answer fl onChecked\") {" +
             "                    answerNodeLabsToBeClicked.push(answerNodeLabs[i]);" +
             "                }" +
