@@ -45,27 +45,50 @@
             android:text="填上答案并复制下题题目"
             android:visibility="gone" />
 
-        <Button
-            android:id="@+id/b_match"
+        <LinearLayout
+            android:id="@+id/ll_match"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="matchHomework"
-            android:text="匹配题目" />
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/b_reload"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="reload"
+                android:text="Reload" />
+
+            <Button
+                android:id="@+id/b_match"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="matchHomework"
+                android:text="读取题目" />
+        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/ll_control"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/b_open_shadow"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="openShadow"
+            android:text="Open Shadow" />
 
         <Button
             android:id="@+id/b_questions"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:onClick="showHideQuestionsView"
-            android:text="题目"
-            android:visibility="invisible" />
+            android:text="题目" />
     </LinearLayout>
 
 </LinearLayout>
