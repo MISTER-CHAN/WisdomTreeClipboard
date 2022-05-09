@@ -67,28 +67,50 @@
         </LinearLayout>
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/ll_control"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:visibility="gone">
+        android:layout_height="wrap_content">
 
-        <Button
-            android:id="@+id/b_open_shadow"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:id="@+id/ll_live_controls"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:onClick="openShadow"
-            android:text="Open Shadow" />
+            android:orientation="horizontal"
+            android:visibility="invisible">
 
-        <Button
-            android:id="@+id/b_questions"
-            android:layout_width="0dp"
+            <Button
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="setLivePlaybackRate"
+                android:text="加速" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_study_video_controls"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:onClick="showHideQuestionsView"
-            android:text="题目" />
-    </LinearLayout>
+            android:orientation="horizontal"
+            android:visibility="invisible">
+
+            <Button
+                android:id="@+id/b_open_shadow"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="openShadow"
+                android:text="Open Shadow" />
+
+            <Button
+                android:id="@+id/b_questions"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="showHideQuestionsView"
+                android:text="题目" />
+        </LinearLayout>
+    </FrameLayout>
+
 
 </LinearLayout>

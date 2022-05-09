@@ -27,6 +27,7 @@ import androidx.appcompat.app.AppCompatActivity;
 public class MainActivity extends AppCompatActivity {
 
     private static final String URL_PREFIX_DO_HOMEWORK = "https://onlineexamh5new.zhihuishu.com/stuExamWeb.html#/webExamList/dohomework/";
+    private static final String URL_PREFIX_LIVE = "https://lc.zhihuishu.com/live/vod_room.html";
     private static final String URL_PREFIX_STUDY_VIDEO = "https://studyh5.zhihuishu.com/videoStudy.html#/";
 
     private static final String JS_ANSWERS = "" +
@@ -122,7 +123,8 @@ public class MainActivity extends AppCompatActivity {
 //            "        defini.getElementsByClassName(\"line1bq switchLine\")[0].click();" +
 //            "    }" +
             "" +
-            "    if (document.getElementsByClassName(\"speedBox\")[0].textContent != \"X 1.5X 1.5X 1.25X 1.0\") {" +
+            "    let speedBox = document.getElementsByClassName(\"speedBox\")[0];" +
+            "    if (speedBox != undefined && speedBox.textContent != \"X 1.5X 1.5X 1.25X 1.0\") {" +
             "        let speedTab = document.getElementsByClassName(\"speedTab speedTab15\")[0];" +
             "        speedTab.setAttribute(\"rate\", 15);" +
 //            "        speedTab.click();" +
@@ -145,6 +147,33 @@ public class MainActivity extends AppCompatActivity {
             "    }" +
             "" +
             "}, 3000);";
+
+    private static final String JS_AUTO_PLAY_LIVE = "javascript:" +
+            "setInterval(() => {" +
+            "" +
+            "    let player = document.getElementById(\"vjs_forFollowBackDiv_html5_api\");" +
+            "" +
+            "    let definiLine = document.getElementsByClassName(\"line1bq\")[0];" +
+            "    if (definiLine != undefined && !definiLine.className.includes(\"active\")) {" +
+            "        definiLine.click();" +
+            "    }" +
+            "" +
+            "    if (player.playbackRate != 12) {" +
+            "        player.playbackRate = 12;" +
+            "    }" +
+            "" +
+            "    if (player.currentTime >= 60) {" +
+            "        let currentPlayer = document.getElementsByClassName(\"current_player\")[0];" +
+            "        if (currentPlayer != undefined) {" +
+            "            let start = videoStartEndmap.get(currentPlayer.getAttribute(\"id\").substring(8))[0];" +
+            "            let time = Math.floor(player.currentTime / 60);" +
+            "            if (!isWatch(start + time)) {" +
+            "                player.currentTime = (time - 1) * 60;" +
+            "            }" +
+            "        }" +
+            "    }" +
+            "" +
+            "}, 1000);";
 
     private static final String JS_OPEN_SHADOW = "javascript:" +
             "Element.prototype._attachShadow = Element.prototype.attachShadow;" +
@@ -192,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
     private ClipboardManager clipboardManager;
     private int number = 0;
     private LayoutInflater layoutInflater;
-    private LinearLayout llControl, llMatch, llQuestions, llWork, llWebView;
+    private LinearLayout llLiveControls, llMatch, llQuestions, llStudyVideoControls, llWork, llWebView;
     private ScrollView svQuestions;
     private String[] questions;
     private WebView webView;
@@ -201,11 +230,13 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onPageFinished(WebView view, String url) {
             webView.getSettings().setBlockNetworkImage(false);
-            if (url.startsWith(URL_PREFIX_DO_HOMEWORK)) {
-                llControl.setVisibility(View.VISIBLE);
-            } else if (url.startsWith(URL_PREFIX_STUDY_VIDEO)) {
+            if (url.startsWith(URL_PREFIX_STUDY_VIDEO)) {
                 webView.loadUrl(JS_AUTO_PLAY);
                 webView.loadUrl(JS_ZOOM);
+            } else if (url.startsWith(URL_PREFIX_DO_HOMEWORK)) {
+                bringControlsToFront(llStudyVideoControls);
+            } else if (url.startsWith(URL_PREFIX_LIVE)) {
+                webView.loadUrl(JS_AUTO_PLAY_LIVE);
             }
             super.onPageFinished(view, url);
         }
@@ -213,7 +244,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             webView.getSettings().setBlockNetworkImage(true);
-            llControl.setVisibility(View.INVISIBLE);
+            bringControlsToFront();
             llQuestions.removeAllViews();
             bringWorkButtonToFront(llMatch);
             bAnswer.setEnabled(false);
@@ -249,6 +280,16 @@ public class MainActivity extends AppCompatActivity {
     private void answer(int number, String answer) {
         webView.evaluateJavascript(String.format(JS_ANSWERS, number, answer.replace("\n", "").replace("\"", "'")),
                 value -> ((TextView) (llQuestions.getChildAt(number - 1)).findViewById(R.id.tv_answer)).setText(value.substring(1, value.length() - 1).replace("\\n", "\n")));
+    }
+
+    private void bringControlsToFront() {
+        llLiveControls.setVisibility(View.INVISIBLE);
+        llStudyVideoControls.setVisibility(View.INVISIBLE);
+    }
+
+    private void bringControlsToFront(View view) {
+        llLiveControls.setVisibility(view == llLiveControls ? View.VISIBLE : View.INVISIBLE);
+        llStudyVideoControls.setVisibility(view == llStudyVideoControls ? View.VISIBLE : View.INVISIBLE);
     }
 
     private void bringWorkButtonToFront(View view) {
@@ -312,9 +353,10 @@ public class MainActivity extends AppCompatActivity {
         bQuestions = findViewById(R.id.b_questions);
         clipboardManager = ((ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE));
         layoutInflater = LayoutInflater.from(this);
-        llControl = findViewById(R.id.ll_control);
+        llLiveControls = findViewById(R.id.ll_live_controls);
         llMatch = findViewById(R.id.ll_match);
         llQuestions = findViewById(R.id.ll_questions);
+        llStudyVideoControls = findViewById(R.id.ll_study_video_controls);
         llWork = findViewById(R.id.ll_work);
         llWebView = findViewById(R.id.ll_wv);
         svQuestions = findViewById(R.id.sv_questions);
@@ -347,8 +389,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if (webView.canGoBack()) {
+            bringControlsToFront();
             bringWorkButtonToFront(llMatch);
-            llControl.setVisibility(View.INVISIBLE);
             webView.goBack();
             if (llWebView.getVisibility() == View.GONE) {
                 llWork.setVisibility(View.GONE);
@@ -385,11 +427,15 @@ public class MainActivity extends AppCompatActivity {
         llWebView.setVisibility(llWebView.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
     }
 
+    public void setLivePlaybackRate(View view) {
+        webView.loadUrl(JS_AUTO_PLAY_LIVE);
+    }
+
     @JavascriptInterface
     public void setPlaybackRate() throws InterruptedException {
-        touch(webView, 730f, 1895f);
+        touch(webView, 730.0f, 1895.0f);
         Thread.sleep(500L);
-        touch(webView, 730f,1795f);
+        touch(webView, 730.0f,1795.0f);
     }
 
     /**
