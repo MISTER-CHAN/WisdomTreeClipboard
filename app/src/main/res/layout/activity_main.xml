@@ -37,13 +37,39 @@
                 android:orientation="vertical" />
         </ScrollView>
 
-        <Button
-            android:id="@+id/b_answer"
+        <LinearLayout
+            android:id="@+id/ll_answer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:onClick="answer"
-            android:text="填上答案并复制下题题目"
-            android:visibility="gone" />
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <Button
+                android:id="@+id/b_auto_answer_tm"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="autoAnswerTm"
+                android:text="自动完成见面课测验" />
+
+            <Button
+                android:id="@+id/b_answer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="answer"
+                android:text="填上答案并复制下题题目" />
+
+            <Button
+                android:id="@+id/b_auto_answer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="autoAnswer"
+                android:text="自动完成作业"
+                android:visibility="gone" />
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/ll_match"
@@ -107,7 +133,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:onClick="showHideQuestionsView"
+                android:onClick="toggleQuestionViewVisibility"
                 android:text="题目" />
         </LinearLayout>
     </FrameLayout>
