@@ -82,7 +82,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:onClick="reload"
-                android:text="Reload" />
+                android:text="刷新" />
 
             <Button
                 android:id="@+id/b_match"
@@ -114,7 +114,7 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/ll_study_video_controls"
+            android:id="@+id/ll_homework_controls"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"

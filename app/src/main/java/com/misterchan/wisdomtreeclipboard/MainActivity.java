@@ -8,7 +8,6 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -18,7 +17,6 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -150,15 +148,25 @@ public class MainActivity extends AppCompatActivity {
             "    }" +
             "    let doc = new DOMParser().parseFromString(mainActivity.getDocument(), 'text/html');" +
             "    let title = '见面课：' + document.getElementsByClassName('fl titleLength')[0].textContent;" +
-            "    let spans;" +
-            "    for (let i = 1, toc; (toc = doc.getElementsByName('toc-' + i)).length >= 2; ++i) {" +
+            "    let ps = doc.getElementsByClassName('content22')[0].getElementsByTagName('p');" +
+            "    let answerSpans = [];" +
+            "    for (let i = 1, toc; (toc = doc.getElementsByName('toc-' + i)).length > 0; ++i) {" +
             "        if (toc[0].textContent == title) {" +
-            "            spans = toc[1].getElementsByTagName('span');" +
+            "            if (--i == 0) {" +
+            "                let spans = ps[0].getElementsByTagName('span');" +
+            "                for (let span of spans) {" +
+            "                    if (span.getAttribute('style') == 'color:red !important') {" +
+            "                        answerSpans.push(span);" +
+            "                    }" +
+            "                }" +
+            "            } else {" +
+            "                answerSpans = ps[i].getElementsByTagName('span');" +
+            "            }" +
             "            break;" +
             "        }" +
             "    };" +
             "    for (let i = 0; i < questions.length; ++i) {" +
-            "        answer(i + 1, spans[i].textContent);" +
+            "        answer(i + 1, answerSpans[i].textContent);" +
             "    }" +
             "    timer = setInterval(timerTask, 500);" +
             "})();";
@@ -288,15 +296,17 @@ public class MainActivity extends AppCompatActivity {
     private static final String JS_ZOOM = "javascript:" +
             "document.getElementsByName('viewport')[0].setAttribute('content','width=device-width,initial-scale=0.25')";
 
-    private Button bAnswer, bMatch, bQuestions;
+    private Button bAnswer;
+    private Button bAutoAnswer;
+    private Button bAutoAnswerTm;
     private ClipboardManager clipboardManager;
     private int number = 0;
     private LayoutInflater layoutInflater;
     private LinearLayout llAnswer;
+    private LinearLayout llHomeworkControls;
     private LinearLayout llLiveControls;
     private LinearLayout llMatch;
     private LinearLayout llQuestions;
-    private LinearLayout llStudyVideoControls;
     private LinearLayout llWork;
     private LinearLayout llWebView;
     private ScrollView svQuestions;
@@ -317,6 +327,11 @@ public class MainActivity extends AppCompatActivity {
                 document = getDocument(new URL(URL_PREFIX_MYMUKE + URLEncoder.encode(courseName, CHARSET_UTF8)));
             } catch (MalformedURLException | UnsupportedEncodingException e) {}
             runOnUiThread(() -> {
+                if (document.isEmpty()) {
+                    Toast.makeText(MainActivity.this, "获取题库失败", Toast.LENGTH_SHORT).show();
+                    bAutoAnswer.setEnabled(true);
+                    return;
+                }
                 webView.loadUrl(JS_AUTO_ANSWER);
             });
         }
@@ -329,6 +344,11 @@ public class MainActivity extends AppCompatActivity {
                 document = getDocument(new URL(URL_PREFIX_TIKUNET + URLEncoder.encode(courseName, CHARSET_UTF8)));
             } catch (MalformedURLException | UnsupportedEncodingException e) {}
             runOnUiThread(() -> {
+                if (document.isEmpty()) {
+                    Toast.makeText(MainActivity.this, "获取题库失败", Toast.LENGTH_SHORT).show();
+                    bAutoAnswerTm.setEnabled(true);
+                    return;
+                }
                 webView.loadUrl(JS_AUTO_ANSWER_TM);
             });
         }
@@ -342,7 +362,8 @@ public class MainActivity extends AppCompatActivity {
                 webView.loadUrl(JS_AUTO_PLAY);
                 webView.loadUrl(JS_ZOOM);
             } else if (url.startsWith(URL_PREFIX_DO_HOMEWORK)) {
-                bringControlsToFront(llStudyVideoControls);
+                bringControlsToFront(llHomeworkControls);
+                bAutoAnswerTm.setEnabled(true);
             } else if (url.startsWith(URL_PREFIX_LIVE)) {
                 webView.loadUrl(JS_AUTO_PLAY_LIVE);
             }
@@ -391,23 +412,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void autoAnswer(View view) {
+        bAutoAnswer.setEnabled(false);
+        Toast.makeText(this, "搜题中，请稍候……", Toast.LENGTH_SHORT).show();
         toggleQuestionViewVisibility();
         new GettingMymukeDocument().start();
     }
 
     public void autoAnswerTm(View view) {
+        bAutoAnswerTm.setEnabled(false);
+        Toast.makeText(this, "搜题中，请稍候……", Toast.LENGTH_SHORT).show();
         toggleQuestionViewVisibility();
         new GettingTikunetDocument().start();
     }
 
     private void bringControlsToFront() {
         llLiveControls.setVisibility(View.INVISIBLE);
-        llStudyVideoControls.setVisibility(View.INVISIBLE);
+        llHomeworkControls.setVisibility(View.INVISIBLE);
     }
 
     private void bringControlsToFront(View view) {
         llLiveControls.setVisibility(view == llLiveControls ? View.VISIBLE : View.INVISIBLE);
-        llStudyVideoControls.setVisibility(view == llStudyVideoControls ? View.VISIBLE : View.INVISIBLE);
+        llHomeworkControls.setVisibility(view == llHomeworkControls ? View.VISIBLE : View.INVISIBLE);
     }
 
     private void bringWorkButtonsToFront(View view) {
@@ -481,15 +506,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         bAnswer = findViewById(R.id.b_answer);
-        bMatch = findViewById(R.id.b_match);
-        bQuestions = findViewById(R.id.b_questions);
+        bAutoAnswer = findViewById(R.id.b_auto_answer);
+        bAutoAnswerTm = findViewById(R.id.b_auto_answer_tm);
         clipboardManager = ((ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE));
         layoutInflater = LayoutInflater.from(this);
         llAnswer = findViewById(R.id.ll_answer);
         llLiveControls = findViewById(R.id.ll_live_controls);
         llMatch = findViewById(R.id.ll_match);
         llQuestions = findViewById(R.id.ll_questions);
-        llStudyVideoControls = findViewById(R.id.ll_study_video_controls);
+        llHomeworkControls = findViewById(R.id.ll_homework_controls);
         llWork = findViewById(R.id.ll_work);
         llWebView = findViewById(R.id.ll_wv);
         svQuestions = findViewById(R.id.sv_questions);
