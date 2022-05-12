@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -35,7 +36,51 @@ import java.nio.charset.StandardCharsets;
 
 public class MainActivity extends AppCompatActivity {
 
+    private class GettingMymukeDocument extends Thread {
+        @Override
+        public void run() {
+            try {
+                document = getDocument(new URL(URL_PREFIX_MYMUKE + URLEncoder.encode(courseName, CHARSET_UTF8)));
+            } catch (MalformedURLException | UnsupportedEncodingException e) {
+            }
+            runOnUiThread(() -> {
+                if (document.isEmpty()) {
+                    Toast.makeText(MainActivity.this, "获取题库失败", Toast.LENGTH_SHORT).show();
+                    bAutoAnswer.setEnabled(true);
+                    return;
+                }
+                webView.loadUrl(JS_AUTO_ANSWER);
+            });
+        }
+    }
+
+    ;
+
+    private class GettingTikunetDocument extends Thread {
+        @Override
+        public void run() {
+            try {
+                document = getDocument(new URL(URL_PREFIX_TIKUNET + URLEncoder.encode(courseName, CHARSET_UTF8)));
+            } catch (MalformedURLException | UnsupportedEncodingException e) {
+            }
+            runOnUiThread(() -> {
+                if (document.isEmpty()) {
+                    Toast.makeText(MainActivity.this, "获取题库失败", Toast.LENGTH_SHORT).show();
+                    bAutoAnswerTm.setEnabled(true);
+                    return;
+                }
+                webView.loadUrl(JS_AUTO_ANSWER_TM);
+            });
+        }
+    }
+
+    ;
+
     private static final String CHARSET_UTF8 = "UTF-8";
+
+    private static final String KEY_LOCATION_NEXT_VIDEO = "nextVideo";
+    private static final String KEY_LOCATION_RATE = "rate";
+    private static final String KEY_LOCATION_RATE_LIST = "rateList";
 
     private static final String URL_PREFIX_DO_HOMEWORK = "https://onlineexamh5new.zhihuishu.com/stuExamWeb.html#/webExamList/dohomework/";
     private static final String URL_PREFIX_LIVE = "https://lc.zhihuishu.com/live/vod_room.html";
@@ -300,6 +345,9 @@ public class MainActivity extends AppCompatActivity {
     private Button bAutoAnswer;
     private Button bAutoAnswerTm;
     private ClipboardManager clipboardManager;
+    private float nextVidBtnLocX, nextVidBtnLocY;
+    private float rateBtnLocX, rateBtnLocY;
+    private float rateListBtnLocX, rateListBtnLocY;
     private int number = 0;
     private LayoutInflater layoutInflater;
     private LinearLayout llAnswer;
@@ -307,51 +355,52 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout llLiveControls;
     private LinearLayout llMatch;
     private LinearLayout llQuestions;
+    private LinearLayout llStudyVideoControls;
     private LinearLayout llWork;
     private LinearLayout llWebView;
     private ScrollView svQuestions;
+    private SharedPreferences buttonLocations;
     private String[] questions;
     private String courseName = "";
-    public String document = "";
+    private String document = "";
+    private String buttonLocationToBeEdited = "";
     private WebView webView;
 
-    @JavascriptInterface
-    public String getDocument() {
-        return document;
-    }
-
-    private class GettingMymukeDocument extends Thread {
-        @Override
-        public void run() {
-            try {
-                document = getDocument(new URL(URL_PREFIX_MYMUKE + URLEncoder.encode(courseName, CHARSET_UTF8)));
-            } catch (MalformedURLException | UnsupportedEncodingException e) {}
-            runOnUiThread(() -> {
-                if (document.isEmpty()) {
-                    Toast.makeText(MainActivity.this, "获取题库失败", Toast.LENGTH_SHORT).show();
-                    bAutoAnswer.setEnabled(true);
-                    return;
-                }
-                webView.loadUrl(JS_AUTO_ANSWER);
-            });
+    @SuppressLint("ClickableViewAccessibility")
+    private final View.OnTouchListener onWebViewTouchListener = (v, event) -> {
+        if (buttonLocationToBeEdited.isEmpty() || event.getAction() != MotionEvent.ACTION_DOWN) {
+            return false;
         }
-    };
-
-    private class GettingTikunetDocument extends Thread {
-        @Override
-        public void run() {
-            try {
-                document = getDocument(new URL(URL_PREFIX_TIKUNET + URLEncoder.encode(courseName, CHARSET_UTF8)));
-            } catch (MalformedURLException | UnsupportedEncodingException e) {}
-            runOnUiThread(() -> {
-                if (document.isEmpty()) {
-                    Toast.makeText(MainActivity.this, "获取题库失败", Toast.LENGTH_SHORT).show();
-                    bAutoAnswerTm.setEnabled(true);
-                    return;
-                }
-                webView.loadUrl(JS_AUTO_ANSWER_TM);
-            });
+        float x = event.getX(), y = event.getY();
+        SharedPreferences.Editor editor = buttonLocations.edit();
+        switch (buttonLocationToBeEdited) {
+            case KEY_LOCATION_NEXT_VIDEO:
+                buttonLocationToBeEdited = "";
+                nextVidBtnLocX = x;
+                nextVidBtnLocY = y;
+                editor.putFloat(KEY_LOCATION_NEXT_VIDEO + "X", x);
+                editor.putFloat(KEY_LOCATION_NEXT_VIDEO + "Y", y);
+                editor.apply();
+                Toast.makeText(this, "完成", Toast.LENGTH_SHORT).show();
+                break;
+            case KEY_LOCATION_RATE:
+                buttonLocationToBeEdited = "";
+                rateBtnLocX = x;
+                rateBtnLocY = y;
+                editor.putFloat(KEY_LOCATION_RATE + "X", x);
+                editor.putFloat(KEY_LOCATION_RATE + "Y", y);
+                editor.apply();
+                Toast.makeText(this, "完成", Toast.LENGTH_SHORT).show();
+                break;
+            case KEY_LOCATION_RATE_LIST:
+                buttonLocationToBeEdited = KEY_LOCATION_RATE;
+                rateListBtnLocX = x;
+                rateListBtnLocY = y;
+                editor.putFloat(KEY_LOCATION_RATE_LIST + "X", x);
+                editor.putFloat(KEY_LOCATION_RATE_LIST + "Y", y);
+                break;
         }
+        return false;
     };
 
     private final WebViewClient webViewClient = new WebViewClient() {
@@ -361,6 +410,7 @@ public class MainActivity extends AppCompatActivity {
             if (url.startsWith(URL_PREFIX_STUDY_VIDEO)) {
                 webView.loadUrl(JS_AUTO_PLAY);
                 webView.loadUrl(JS_ZOOM);
+                bringControlsToFront(llStudyVideoControls);
             } else if (url.startsWith(URL_PREFIX_DO_HOMEWORK)) {
                 bringControlsToFront(llHomeworkControls);
                 bAutoAnswerTm.setEnabled(true);
@@ -374,6 +424,7 @@ public class MainActivity extends AppCompatActivity {
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             webView.getSettings().setBlockNetworkImage(true);
             bringControlsToFront();
+            buttonLocationToBeEdited = "";
             llQuestions.removeAllViews();
             bringWorkButtonsToFront(llMatch);
             bAnswer.setEnabled(false);
@@ -426,11 +477,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void bringControlsToFront() {
+        llStudyVideoControls.setVisibility(View.INVISIBLE);
         llLiveControls.setVisibility(View.INVISIBLE);
         llHomeworkControls.setVisibility(View.INVISIBLE);
     }
 
     private void bringControlsToFront(View view) {
+        llStudyVideoControls.setVisibility(view == llStudyVideoControls ? View.VISIBLE : View.INVISIBLE);
         llLiveControls.setVisibility(view == llLiveControls ? View.VISIBLE : View.INVISIBLE);
         llHomeworkControls.setVisibility(view == llHomeworkControls ? View.VISIBLE : View.INVISIBLE);
     }
@@ -453,6 +506,19 @@ public class MainActivity extends AppCompatActivity {
     private void copyQuestion(int number, String question) {
         clipboardManager.setPrimaryClip(ClipData.newPlainText("Label", question));
         Toast.makeText(this, String.format("已复制第 %d 题题目", number), Toast.LENGTH_SHORT).show();
+    }
+
+    public void editNextVidBtnLoc(View view) {
+        buttonLocationToBeEdited = KEY_LOCATION_NEXT_VIDEO;
+    }
+
+    public void editRateBtnLoc(View view) {
+        buttonLocationToBeEdited = KEY_LOCATION_RATE_LIST;
+    }
+
+    @JavascriptInterface
+    public String getDocument() {
+        return document;
     }
 
     private String getDocument(URL url) {
@@ -494,12 +560,30 @@ public class MainActivity extends AppCompatActivity {
 
     @JavascriptInterface
     public void nextVideo() throws InterruptedException {
-        touch(webView, 50f, 1000f);
+        if (!buttonLocationToBeEdited.isEmpty()) {
+            return;
+        }
+        touch(webView, 50.0f, 1000.0f);
         Thread.sleep(500L);
-        touch(webView, 50f, 1895f);
+        touch(webView, nextVidBtnLocX, nextVidBtnLocY);
     }
 
-    @SuppressLint({"SetJavaScriptEnabled", "JavascriptInterface"})
+    @Override
+    public void onBackPressed() {
+        if (webView.canGoBack()) {
+            bringControlsToFront();
+            bringWorkButtonsToFront(llMatch);
+            webView.goBack();
+            if (llWebView.getVisibility() == View.GONE) {
+                llWork.setVisibility(View.GONE);
+                llWebView.setVisibility(View.VISIBLE);
+            }
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @SuppressLint({"SetJavaScriptEnabled", "JavascriptInterface", "ClickableViewAccessibility"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -509,18 +593,21 @@ public class MainActivity extends AppCompatActivity {
         bAutoAnswer = findViewById(R.id.b_auto_answer);
         bAutoAnswerTm = findViewById(R.id.b_auto_answer_tm);
         clipboardManager = ((ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE));
+        buttonLocations = getSharedPreferences("Locations", MODE_PRIVATE);
         layoutInflater = LayoutInflater.from(this);
         llAnswer = findViewById(R.id.ll_answer);
+        llHomeworkControls = findViewById(R.id.ll_homework_controls);
         llLiveControls = findViewById(R.id.ll_live_controls);
         llMatch = findViewById(R.id.ll_match);
         llQuestions = findViewById(R.id.ll_questions);
-        llHomeworkControls = findViewById(R.id.ll_homework_controls);
+        llStudyVideoControls = findViewById(R.id.ll_study_video_controls);
         llWork = findViewById(R.id.ll_work);
         llWebView = findViewById(R.id.ll_wv);
         svQuestions = findViewById(R.id.sv_questions);
 
         webView = new MediaWebView(this);
         webView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        webView.setOnTouchListener(onWebViewTouchListener);
         ((LinearLayout) findViewById(R.id.ll_wv)).addView(webView);
 
         webView.addJavascriptInterface(this, "mainActivity");
@@ -541,22 +628,14 @@ public class MainActivity extends AppCompatActivity {
         webView.setWebViewClient(webViewClient);
         webView.requestFocusFromTouch();
 
-        webView.loadUrl("https://onlineweb.zhihuishu.com/onlinestuh5");
-    }
+        nextVidBtnLocX = buttonLocations.getFloat(KEY_LOCATION_NEXT_VIDEO + "X", 50.0f);
+        nextVidBtnLocY = buttonLocations.getFloat(KEY_LOCATION_NEXT_VIDEO + "Y", 1895.0f);
+        rateBtnLocX = buttonLocations.getFloat(KEY_LOCATION_RATE + "X", 730.0f);
+        rateBtnLocY = buttonLocations.getFloat(KEY_LOCATION_RATE + "Y", 1795.0f);
+        rateListBtnLocX = buttonLocations.getFloat(KEY_LOCATION_RATE_LIST + "X", 730.0f);
+        rateListBtnLocY = buttonLocations.getFloat(KEY_LOCATION_RATE_LIST + "Y", 1895.0f);
 
-    @Override
-    public void onBackPressed() {
-        if (webView.canGoBack()) {
-            bringControlsToFront();
-            bringWorkButtonsToFront(llMatch);
-            webView.goBack();
-            if (llWebView.getVisibility() == View.GONE) {
-                llWork.setVisibility(View.GONE);
-                llWebView.setVisibility(View.VISIBLE);
-            }
-        } else {
-            super.onBackPressed();
-        }
+        webView.loadUrl("https://onlineweb.zhihuishu.com/onlinestuh5");
     }
 
     public void openShadow(View view) {
@@ -600,9 +679,12 @@ public class MainActivity extends AppCompatActivity {
 
     @JavascriptInterface
     public void setPlaybackRate() throws InterruptedException {
-        touch(webView, 730.0f, 1895.0f);
+        if (!buttonLocationToBeEdited.isEmpty()) {
+            return;
+        }
+        touch(webView, rateListBtnLocX, rateListBtnLocY);
         Thread.sleep(500L);
-        touch(webView, 730.0f, 1795.0f);
+        touch(webView, rateBtnLocX, rateBtnLocY);
     }
 
     /**

@@ -98,6 +98,26 @@
         android:layout_height="wrap_content">
 
         <LinearLayout
+            android:id="@+id/ll_study_video_controls"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="invisible">
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="editNextVidBtnLoc"
+                android:text="设置下集按钮位置" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="editRateBtnLoc"
+                android:text="设置速度按钮位置" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/ll_live_controls"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
