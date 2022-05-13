@@ -88,81 +88,6 @@ public class MainActivity extends AppCompatActivity {
     private static final String URL_PREFIX_STUDY_VIDEO = "https://studyh5.zhihuishu.com/videoStudy.html#/";
     private static final String URL_PREFIX_TIKUNET = "http://www.tikunet.com/?s=";
 
-    private static final String JS_DEF_ANSWER_FUNC = "javascript:" +
-            "const CORRECT = ['√', '对', '正确'], INCORRECT = ['×', '错', '错误'];" +
-            "var answerNodeLabsToBeClicked = [], timer = {};" +
-            "function timerTask() {" +
-            "    if (answerNodeLabsToBeClicked.length > 0) {" +
-            "        answerNodeLabsToBeClicked[0].click();" +
-            "        answerNodeLabsToBeClicked.shift();" +
-            "    } else {" +
-            "        clearInterval(timer);" +
-            "    }" +
-            "};" +
-            "function answer(number, ans) {" +
-            "    let result = '';" +
-            "    let questionSubject = document.getElementsByClassName('examPaper_subject mt20')[number - 1];" +
-            "    switch (questionSubject.getElementsByClassName('subject_type')[0].children[0].textContent) {" +
-            "        case '【单选题】':" +
-            "            var answerNodeLabs = questionSubject.getElementsByClassName('nodeLab');" +
-            "            ans = ans.replace(/\\s/g, '').replace(/[;。；]$/, '');" +
-            "            for (let i = 0; i < answerNodeLabs.length; ++i) {" +
-            "                let examQuestionsAnswer = answerNodeLabs[i].getElementsByClassName('label clearfix')[0].children[2], examQuestionsAnswerTextContent = examQuestionsAnswer.textContent.replace(/\\s/g, '').replace(/[;。；]$/, '');" +
-            "                result += answerNodeLabs[i].textContent;" +
-            "                if (examQuestionsAnswerTextContent == ans || examQuestionsAnswerTextContent == '√' && CORRECT.includes(ans) || examQuestionsAnswerTextContent == '×' && INCORRECT.includes(ans)) {" +
-            "                    answerNodeLabs[i].click();" +
-            "                    result += ' ✓';" +
-            "                }" +
-            "                result += '\\n';" +
-            "            }" +
-            "            result = result.slice(0, -1);" +
-            "            break;" +
-            "        case '【多选题】':" +
-            "            var answerNodeLabs = questionSubject.getElementsByClassName('nodeLab');" +
-            "            ans = ans.replace(/\\s/g, '');" +
-            "            for (let i = 0; i < answerNodeLabs.length; ++i) {" +
-            "                let examQuestionsAnswer = answerNodeLabs[i].getElementsByClassName('label clearfix')[0].children[1];" +
-            "                result += answerNodeLabs[i].textContent;" +
-            "                let b = ans.includes(examQuestionsAnswer.textContent.replace(/\\s/g, '').replace(/[;。；]$/, ''));" +
-            "                if (b ^ examQuestionsAnswer.className == 'node_detail examquestions-answer fl onChecked') {" +
-            "                    answerNodeLabsToBeClicked.push(answerNodeLabs[i]);" +
-            "                }" +
-            "                if (b) {" +
-            "                    result += ' ✓';" +
-            "                }" +
-            "                result += '\\n';" +
-            "            }" +
-            "            result = result.slice(0, -1);" +
-            "            break;" +
-            "        case '【判断题】':" +
-            "            var answerNodeLabs = questionSubject.getElementsByClassName('nodeLab');" +
-            "            if (CORRECT.includes(ans)) {" +
-            "                for (let i of [0, 1]) {" +
-            "                    let examQuestionsAnswerTextContent = answerNodeLabs[i].getElementsByClassName('label clearfix')[0].children[1].textContent;" +
-            "                    if (examQuestionsAnswerTextContent == '对') {" +
-            "                        answerNodeLabs[i].click();" +
-            "                        break;" +
-            "                    }" +
-            "                }" +
-            "                result += '对';" +
-            "            } else if (INCORRECT.includes(ans)) {" +
-            "                for (let i of [0, 1]) {" +
-            "                    let examQuestionsAnswerTextContent = answerNodeLabs[i].getElementsByClassName('label clearfix')[0].children[1].textContent;" +
-            "                    if (examQuestionsAnswerTextContent == '错') {" +
-            "                        answerNodeLabs[i].click();" +
-            "                        break;" +
-            "                    }" +
-            "                }" +
-            "                result += '错';" +
-            "            }" +
-            "            break;" +
-            "        case '【填空题】':" +
-            "            result += ans;" +
-            "            break;" +
-            "    }" +
-            "    return result;" +
-            "}";
-
     private static final String JS_ANSWERS = "" +
             "(() => {" +
             "    let result = answer(%d, \"%s\");" +
@@ -296,6 +221,81 @@ public class MainActivity extends AppCompatActivity {
             "    }" +
             "" +
             "}, 1000);";
+
+    private static final String JS_DEF_ANSWER_FUNC = "javascript:" +
+            "const CORRECT = /√|对|正确/, INCORRECT = /×|错|错误/;" +
+            "var answerNodeLabsToBeClicked = [], timer = {};" +
+            "function timerTask() {" +
+            "    if (answerNodeLabsToBeClicked.length > 0) {" +
+            "        answerNodeLabsToBeClicked[0].click();" +
+            "        answerNodeLabsToBeClicked.shift();" +
+            "    } else {" +
+            "        clearInterval(timer);" +
+            "    }" +
+            "};" +
+            "function answer(number, ans) {" +
+            "    let result = '';" +
+            "    let questionSubject = document.getElementsByClassName('examPaper_subject mt20')[number - 1];" +
+            "    switch (questionSubject.getElementsByClassName('subject_type')[0].children[0].textContent) {" +
+            "        case '【单选题】':" +
+            "            var answerNodeLabs = questionSubject.getElementsByClassName('nodeLab');" +
+            "            ans = ans.replace(/\\s/g, '').replace(/[;。；]$/, '');" +
+            "            for (let i = 0; i < answerNodeLabs.length; ++i) {" +
+            "                let examQuestionsAnswer = answerNodeLabs[i].getElementsByClassName('label clearfix')[0].children[2], examQuestionsAnswerTextContent = examQuestionsAnswer.textContent.replace(/\\s/g, '').replace(/[;。；]$/, '');" +
+            "                result += answerNodeLabs[i].textContent;" +
+            "                if (examQuestionsAnswerTextContent == ans || examQuestionsAnswerTextContent == '√' && CORRECT.test(ans) || examQuestionsAnswerTextContent == '×' && INCORRECT.test(ans)) {" +
+            "                    answerNodeLabs[i].click();" +
+            "                    result += ' ✓';" +
+            "                }" +
+            "                result += '\\n';" +
+            "            }" +
+            "            result = result.slice(0, -1);" +
+            "            break;" +
+            "        case '【多选题】':" +
+            "            var answerNodeLabs = questionSubject.getElementsByClassName('nodeLab');" +
+            "            ans = ans.replace(/\\s/g, '');" +
+            "            for (let i = 0; i < answerNodeLabs.length; ++i) {" +
+            "                let examQuestionsAnswer = answerNodeLabs[i].getElementsByClassName('label clearfix')[0].children[1];" +
+            "                result += answerNodeLabs[i].textContent;" +
+            "                let b = ans.includes(examQuestionsAnswer.textContent.replace(/\\s/g, '').replace(/[;。；]$/, ''));" +
+            "                if (b ^ examQuestionsAnswer.className == 'node_detail examquestions-answer fl onChecked') {" +
+            "                    answerNodeLabsToBeClicked.push(answerNodeLabs[i]);" +
+            "                }" +
+            "                if (b) {" +
+            "                    result += ' ✓';" +
+            "                }" +
+            "                result += '\\n';" +
+            "            }" +
+            "            result = result.slice(0, -1);" +
+            "            break;" +
+            "        case '【判断题】':" +
+            "            var answerNodeLabs = questionSubject.getElementsByClassName('nodeLab');" +
+            "            if (CORRECT.test(ans)) {" +
+            "                for (let i of [0, 1]) {" +
+            "                    let examQuestionsAnswerTextContent = answerNodeLabs[i].getElementsByClassName('label clearfix')[0].children[1].textContent;" +
+            "                    if (examQuestionsAnswerTextContent == '对') {" +
+            "                        answerNodeLabs[i].click();" +
+            "                        break;" +
+            "                    }" +
+            "                }" +
+            "                result += '对';" +
+            "            } else if (INCORRECT.test(ans)) {" +
+            "                for (let i of [0, 1]) {" +
+            "                    let examQuestionsAnswerTextContent = answerNodeLabs[i].getElementsByClassName('label clearfix')[0].children[1].textContent;" +
+            "                    if (examQuestionsAnswerTextContent == '错') {" +
+            "                        answerNodeLabs[i].click();" +
+            "                        break;" +
+            "                    }" +
+            "                }" +
+            "                result += '错';" +
+            "            }" +
+            "            break;" +
+            "        case '【填空题】':" +
+            "            result += ans;" +
+            "            break;" +
+            "    }" +
+            "    return result;" +
+            "}";
 
     private static final String JS_OPEN_SHADOW = "javascript:" +
             "Element.prototype._attachShadow = Element.prototype.attachShadow;" +
