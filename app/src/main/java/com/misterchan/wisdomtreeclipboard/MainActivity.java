@@ -458,7 +458,7 @@ public class MainActivity extends AppCompatActivity {
      */
     @SuppressLint("DefaultLocale")
     private void answer(int number, String answer) {
-        webView.evaluateJavascript(String.format(JS_ANSWERS, number, answer.replace("\n", "").replace("\"", "'")),
+        webView.evaluateJavascript(String.format(JS_ANSWERS, number, answer.trim().replace("\n", "").replace("\"", "'")),
                 value -> ((TextView) (llQuestions.getChildAt(number - 1)).findViewById(R.id.tv_answer)).setText(value.substring(1, value.length() - 1).replace("\\n", "\n")));
     }
 
