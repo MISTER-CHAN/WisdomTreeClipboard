@@ -223,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
             "}, 1000);";
 
     private static final String JS_DEF_ANSWER_FUNC = "javascript:" +
-            "const CORRECT = /√|对|正确/, INCORRECT = /×|错|错误/;" +
+            "const CORRECT = /(?:√|对|正确)$/, INCORRECT = /(?:×|错|错误)$/;" +
             "var answerNodeLabsToBeClicked = [], timer = {};" +
             "function timerTask() {" +
             "    if (answerNodeLabsToBeClicked.length > 0) {" +
