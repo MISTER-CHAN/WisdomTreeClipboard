@@ -121,15 +121,29 @@
             android:id="@+id/ll_live_controls"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:gravity="center_vertical"
             android:orientation="horizontal"
             android:visibility="invisible">
 
-            <Button
-                android:layout_width="0dp"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:onClick="setLivePlaybackRate"
-                android:text="加速" />
+                android:text="速度：" />
+
+            <TextView
+                android:id="@+id/tv_playback_rate_live"
+                android:layout_width="32dp"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:text="12" />
+
+            <SeekBar
+                android:id="@+id/sb_playback_rate_live"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="30"
+                android:progress="24" />
 
         </LinearLayout>
 

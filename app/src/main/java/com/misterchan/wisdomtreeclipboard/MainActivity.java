@@ -20,6 +20,7 @@ import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -205,8 +206,9 @@ public class MainActivity extends AppCompatActivity {
             "        definiLine.click();" +
             "    }" +
             "" +
-            "    if (player.playbackRate != 12) {" +
-            "        player.playbackRate = 12;" +
+            "    let playbackRate = mainActivity.getPlaybackRateLive();" +
+            "    if (player.playbackRate != playbackRate) {" +
+            "        player.playbackRate = playbackRate;" +
             "    }" +
             "" +
             "    if (player.currentTime >= 60) {" +
@@ -359,11 +361,13 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout llWork;
     private LinearLayout llWebView;
     private ScrollView svQuestions;
+    private SeekBar sbPlaybackRateLive;
     private SharedPreferences buttonLocations;
     private String[] questions;
     private String courseName = "";
     private String document = "";
     private String buttonLocationToBeEdited = "";
+    private TextView tvPlaybackRateLive;
     private WebView webView;
 
     @SuppressLint("ClickableViewAccessibility")
@@ -416,6 +420,7 @@ public class MainActivity extends AppCompatActivity {
                 bAutoAnswerTm.setEnabled(true);
             } else if (url.startsWith(URL_PREFIX_LIVE)) {
                 webView.loadUrl(JS_AUTO_PLAY_LIVE);
+                bringControlsToFront(llLiveControls);
             }
             super.onPageFinished(view, url);
         }
@@ -534,6 +539,11 @@ public class MainActivity extends AppCompatActivity {
         return sb.toString();
     }
 
+    @JavascriptInterface
+    public float getPlaybackRateLive() {
+        return sbPlaybackRateLive.getProgress() / 2.0f;
+    }
+
     public void matchHomework(View view) {
         bringWorkButtonsToFront(llAnswer);
         matchHomework();
@@ -603,12 +613,29 @@ public class MainActivity extends AppCompatActivity {
         llStudyVideoControls = findViewById(R.id.ll_study_video_controls);
         llWork = findViewById(R.id.ll_work);
         llWebView = findViewById(R.id.ll_wv);
+        sbPlaybackRateLive = findViewById(R.id.sb_playback_rate_live);
         svQuestions = findViewById(R.id.sv_questions);
+        tvPlaybackRateLive = findViewById(R.id.tv_playback_rate_live);
 
         webView = new MediaWebView(this);
         webView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         webView.setOnTouchListener(onWebViewTouchListener);
         ((LinearLayout) findViewById(R.id.ll_wv)).addView(webView);
+
+        sbPlaybackRateLive.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                tvPlaybackRateLive.setText(String.valueOf(progress / 2.0f));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
 
         webView.addJavascriptInterface(this, "mainActivity");
         WebSettings ws = webView.getSettings();
