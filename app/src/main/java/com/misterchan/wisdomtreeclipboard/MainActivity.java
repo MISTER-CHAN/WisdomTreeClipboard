@@ -118,12 +118,12 @@ public class MainActivity extends AppCompatActivity {
             "        return;" +
             "    }" +
             "    let doc = new DOMParser().parseFromString(mainActivity.getDocument(), 'text/html');" +
-            "    let title = '见面课：' + document.getElementsByClassName('fl titleLength')[0].textContent;" +
+            "    let title = '见面课：' + document.getElementsByClassName('fl titleLength')[0].textContent.trim().replace('--', '–');" +
             "    let ps = doc.getElementsByClassName('content22')[0].getElementsByTagName('p');" +
             "    let answerSpans = [];" +
-            "    for (let i = 1, toc; (toc = doc.getElementsByName('toc-' + i)).length > 0; ++i) {" +
+            "    for (let i = 0, toc; (toc = doc.getElementsByName('toc-' + (i + 1))).length > 0; ++i) {" +
             "        if (toc[0].textContent == title) {" +
-            "            if (--i == 0) {" +
+            "            if (i == 0) {" +
             "                let spans = ps[0].getElementsByTagName('span');" +
             "                for (let span of spans) {" +
             "                    if (span.getAttribute('style') == 'color:red !important') {" +
@@ -534,7 +534,12 @@ public class MainActivity extends AppCompatActivity {
                 sb.append(line);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            String urlStr = url.toString();
+            if (urlStr.startsWith(URL_PREFIX_MYMUKE)) {
+                bAutoAnswer.setEnabled(true);
+            } else if (urlStr.startsWith(URL_PREFIX_TIKUNET)) {
+                bAutoAnswerTm.setEnabled(true);
+            }
         }
         return sb.toString();
     }
