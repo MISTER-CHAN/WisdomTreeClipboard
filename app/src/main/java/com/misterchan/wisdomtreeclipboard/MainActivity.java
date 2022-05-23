@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_LOCATION_RATE = "rate";
     private static final String KEY_LOCATION_RATE_LIST = "rateList";
 
-    private static final String URL_PREFIX_DO_HOMEWORK = "https://onlineexamh5new.zhihuishu.com/stuExamWeb.html#/webExamList/dohomework/";
+    private static final String URL_PREFIX_EXAM = "https://onlineexamh5new.zhihuishu.com/stuExamWeb.html#/webExamList/";
     private static final String URL_PREFIX_LIVE = "https://lc.zhihuishu.com/live/vod_room.html";
     private static final String URL_PREFIX_MYMUKE = "https://www.mymuke.com/?search_cat=5&s=";
     private static final String URL_PREFIX_STUDY_VIDEO = "https://studyh5.zhihuishu.com/videoStudy.html#/";
@@ -260,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
             "                let examQuestionsAnswer = answerNodeLabs[i].getElementsByClassName('label clearfix')[0].children[1];" +
             "                result += answerNodeLabs[i].textContent;" +
             "                let b = ans.includes(examQuestionsAnswer.textContent.replace(/\\s/g, '').replace(/[;。；]$/, ''));" +
-            "                if (b ^ examQuestionsAnswer.className == 'node_detail examquestions-answer fl onChecked') {" +
+            "                if (b ^ examQuestionsAnswer.className.includes('onChecked')) {" +
             "                    answerNodeLabsToBeClicked.push(answerNodeLabs[i]);" +
             "                }" +
             "                if (b) {" +
@@ -353,7 +353,7 @@ public class MainActivity extends AppCompatActivity {
     private int number = 0;
     private LayoutInflater layoutInflater;
     private LinearLayout llAnswer;
-    private LinearLayout llHomeworkControls;
+    private LinearLayout llExamControls;
     private LinearLayout llLiveControls;
     private LinearLayout llMatch;
     private LinearLayout llQuestions;
@@ -415,8 +415,8 @@ public class MainActivity extends AppCompatActivity {
                 webView.loadUrl(JS_AUTO_PLAY);
                 webView.loadUrl(JS_ZOOM);
                 bringControlsToFront(llStudyVideoControls);
-            } else if (url.startsWith(URL_PREFIX_DO_HOMEWORK)) {
-                bringControlsToFront(llHomeworkControls);
+            } else if (url.startsWith(URL_PREFIX_EXAM)) {
+                bringControlsToFront(llExamControls);
                 bAutoAnswerTm.setEnabled(true);
             } else if (url.startsWith(URL_PREFIX_LIVE)) {
                 webView.loadUrl(JS_AUTO_PLAY_LIVE);
@@ -484,13 +484,13 @@ public class MainActivity extends AppCompatActivity {
     private void bringControlsToFront() {
         llStudyVideoControls.setVisibility(View.INVISIBLE);
         llLiveControls.setVisibility(View.INVISIBLE);
-        llHomeworkControls.setVisibility(View.INVISIBLE);
+        llExamControls.setVisibility(View.INVISIBLE);
     }
 
     private void bringControlsToFront(View view) {
         llStudyVideoControls.setVisibility(view == llStudyVideoControls ? View.VISIBLE : View.INVISIBLE);
         llLiveControls.setVisibility(view == llLiveControls ? View.VISIBLE : View.INVISIBLE);
-        llHomeworkControls.setVisibility(view == llHomeworkControls ? View.VISIBLE : View.INVISIBLE);
+        llExamControls.setVisibility(view == llExamControls ? View.VISIBLE : View.INVISIBLE);
     }
 
     private void bringWorkButtonsToFront(View view) {
@@ -611,7 +611,7 @@ public class MainActivity extends AppCompatActivity {
         buttonLocations = getSharedPreferences("Locations", MODE_PRIVATE);
         layoutInflater = LayoutInflater.from(this);
         llAnswer = findViewById(R.id.ll_answer);
-        llHomeworkControls = findViewById(R.id.ll_homework_controls);
+        llExamControls = findViewById(R.id.ll_exam_controls);
         llLiveControls = findViewById(R.id.ll_live_controls);
         llMatch = findViewById(R.id.ll_match);
         llQuestions = findViewById(R.id.ll_questions);

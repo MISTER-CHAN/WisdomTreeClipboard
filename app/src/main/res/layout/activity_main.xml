@@ -148,7 +148,7 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/ll_homework_controls"
+            android:id="@+id/ll_exam_controls"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
