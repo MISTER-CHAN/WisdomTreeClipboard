@@ -9,6 +9,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -95,6 +96,9 @@ public class MainActivity extends AppCompatActivity {
             "    timer = setInterval(timerTask, 500);" +
             "    return result;" +
             "})()";
+
+    private static final String JS_ATTACH_SHADOW_UNDEFINED = "javascript:" +
+            "Element.prototype.attachShadow = undefined;";
 
     private static final String JS_AUTO_ANSWER = "javascript:" +
             "(() => {" +
@@ -238,8 +242,16 @@ public class MainActivity extends AppCompatActivity {
             "function answer(number, ans) {" +
             "    let result = '';" +
             "    let questionSubject = document.getElementsByClassName('examPaper_subject mt20')[number - 1];" +
-            "    switch (questionSubject.getElementsByClassName('subject_type')[0].children[0].textContent) {" +
-            "        case '【单选题】':" +
+            "    let type, rb, cb, j, e;" +
+            "    if ((type = questionSubject.getElementsByClassName('subject_type')).length > 0) {" +
+            "        type = type[0].children[0].textContent;" +
+            "        rb = '【单选题】'; cb = '【多选题】'; j = '【判断题】'; e = '【填空题】';" +
+            "    } else if ((type = questionSubject.getElementsByClassName('smallStem_describe')).length > 0) {" +
+            "        type = type[0].children[1].textContent.match(/单选|多选|判断|填空/)[0];" +
+            "        rb = '单选'; cb = '多选'; j = '判断'; e = '填空';" +
+            "    }" +
+            "    switch (type) {" +
+            "        case rb:" +
             "            var answerNodeLabs = questionSubject.getElementsByClassName('nodeLab');" +
             "            ans = ans.replace(/\\s/g, '').replace(/[;。；]$/, '');" +
             "            for (let i = 0; i < answerNodeLabs.length; ++i) {" +
@@ -253,7 +265,7 @@ public class MainActivity extends AppCompatActivity {
             "            }" +
             "            result = result.slice(0, -1);" +
             "            break;" +
-            "        case '【多选题】':" +
+            "        case cb:" +
             "            var answerNodeLabs = questionSubject.getElementsByClassName('nodeLab');" +
             "            ans = ans.replace(/\\s/g, '');" +
             "            for (let i = 0; i < answerNodeLabs.length; ++i) {" +
@@ -270,7 +282,7 @@ public class MainActivity extends AppCompatActivity {
             "            }" +
             "            result = result.slice(0, -1);" +
             "            break;" +
-            "        case '【判断题】':" +
+            "        case j:" +
             "            var answerNodeLabs = questionSubject.getElementsByClassName('nodeLab');" +
             "            if (CORRECT.test(ans)) {" +
             "                for (let i of [0, 1]) {" +
@@ -292,7 +304,7 @@ public class MainActivity extends AppCompatActivity {
             "                result += '错';" +
             "            }" +
             "            break;" +
-            "        case '【填空题】':" +
+            "        case e:" +
             "            result += ans;" +
             "            break;" +
             "    }" +
@@ -309,29 +321,43 @@ public class MainActivity extends AppCompatActivity {
             "var questions = [];" +
             "(() => {" +
             "    mainActivity.setCourseName(document.getElementsByClassName('course_name')[0].textContent);" +
-            "    let questionSubjects = document.getElementsByClassName('examPaper_subject mt20'), answers = [];" +
+            "    let questionSubjects = document.getElementsByClassName('examPaper_subject mt20'), answers = [],i=0;" +
             "    for (let questionSubject of questionSubjects) {" +
-            "        questions.push(questionSubject.getElementsByClassName('subject_describe dynamic-fonts')[0].firstChild.firstChild.shadowRoot.textContent);" +
+            "        let describe, type, rb, cb, j, e;" +
+            "        if ((describe = questionSubject.getElementsByClassName('subject_describe')).length > 0) {" +
+            "            questions.push(describe[0].firstChild.firstChild.textContent);" +
+            "            type = questionSubject.getElementsByClassName('subject_type')[0].children[0].textContent;" +
+            "            rb = '【单选题】'; cb = '【多选题】'; j = '【判断题】'; e = '【填空题】';" +
+            "        } else if ((describe = questionSubject.getElementsByClassName('smallStem_describe')).length > 0) {" +
+            "            let q = describe[0].children[1].textContent;" +
+            "            questions.push(q);" +
+            "            type = q.match(/单选|多选|判断|填空/)[0];" +
+            "            rb = '单选'; cb = '多选'; j = '判断'; e = '填空';" +
+            "        } else {" +
+            "            break;" +
+            "        }" +
             "        let ans = '  ';" +
-            "        switch (questionSubject.getElementsByClassName('subject_type')[0].children[0].textContent) {" +
-            "            case '【单选题】':" +
+            "        switch (type) {" +
+            "            case rb:" +
             "                var answerNodeLab = questionSubject.getElementsByClassName('nodeLab nodeLab12');" +
+            "                ans = '';" +
             "                for (let j = 0; j < answerNodeLab.length; ++j) {" +
             "                    ans += answerNodeLab[j].textContent + '\\n';" +
             "                }" +
             "                ans = ans.slice(0, -1);" +
             "                break;" +
-            "            case '【多选题】':" +
+            "            case cb:" +
             "                var answerNodeLab = questionSubject.getElementsByClassName('nodeLab');" +
+            "                ans = '';" +
             "                for (let j = 0; j < answerNodeLab.length; ++j) {" +
             "                    ans += answerNodeLab[j].textContent + '\\n';" +
             "                }" +
             "                ans = ans.slice(0, -1);" +
             "                break;" +
-            "            case '【判断题】':" +
+            "            case j:" +
             "                ans = '对？错？';" +
             "                break;" +
-            "            case '【填空题】':" +
+            "            case e:" +
             "                ans = ' ';" +
             "                break;" +
             "        }" +
@@ -416,6 +442,7 @@ public class MainActivity extends AppCompatActivity {
                 webView.loadUrl(JS_ZOOM);
                 bringControlsToFront(llStudyVideoControls);
             } else if (url.startsWith(URL_PREFIX_EXAM)) {
+                webView.loadUrl(JS_ATTACH_SHADOW_UNDEFINED);
                 bringControlsToFront(llExamControls);
                 bAutoAnswerTm.setEnabled(true);
             } else if (url.startsWith(URL_PREFIX_LIVE)) {
@@ -498,9 +525,15 @@ public class MainActivity extends AppCompatActivity {
         llMatch.setVisibility(view == llMatch ? View.VISIBLE : View.GONE);
     }
 
+    public void copyAnswer(View v) {
+        clipboardManager.setPrimaryClip(ClipData.newPlainText("Label", ((TextView) v).getText()));
+        Toast.makeText(this, String.format("已复制第 %d 题选项", number), Toast.LENGTH_SHORT).show();
+    }
+
     public void copyQuestion(View v) {
-        setNumber((int) v.getTag());
-        copyQuestion(number, ((TextView) v).getText().toString());
+        int number = (int) v.getTag();
+        setNumber(number);
+        copyQuestion(number, questions[number - 1]);
         bAnswer.setEnabled(true);
     }
 
@@ -559,6 +592,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void matchHomework() {
         webView.evaluateJavascript(JS_QUESTIONS, value -> {
+            Log.d("\n\n\nvalue\n\n\n",value+"\n\n\n");
             String[] qAndA;
             if (!"null".equals(value) && (qAndA = value.substring(1, value.length() - 1).replace("\\n", "\n").split(",,,")).length == 2) {
                 // qAndA[0] - all questions.
