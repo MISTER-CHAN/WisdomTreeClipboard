@@ -240,6 +240,10 @@ public class MainActivity extends AppCompatActivity {
             "    }" +
             "};" +
             "function answer(number, ans) {" +
+            "    if (document.getElementsByClassName('yidun_modal').length > 0) {" +
+            "        mainActivity.showToast('请进行验证');" +
+            "        return null;" +
+            "    }" +
             "    let result = '';" +
             "    let questionSubject = document.getElementsByClassName('examPaper_subject mt20')[number - 1];" +
             "    let type, rb, cb, j, e;" +
@@ -465,33 +469,36 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    public void answer(View view) {
-        if (clipboardManager.hasPrimaryClip()) {
-
-            // Answer
-            answer(number, clipboardManager.getPrimaryClip().getItemAt(0).getText().toString());
-
-            // Copy next question
-            if (number < questions.length) {
-                setNumber(number + 1);
-                copyQuestion(number, questions[number - 1]);
-                View v = llQuestions.getChildAt(number - 1);
-                int y = v.getTop();
-                if (svQuestions.getScrollY() + svQuestions.getHeight() < y + v.getHeight()) {
-                    svQuestions.smoothScrollTo(0, y);
-                }
-            }
-
-        }
-    }
-
     /**
      * Answer a question.
      */
     @SuppressLint("DefaultLocale")
-    private void answer(int number, String answer) {
-        webView.evaluateJavascript(String.format(JS_ANSWERS, number, answer.trim().replace("\n", "").replace("\"", "'")),
-                value -> ((TextView) (llQuestions.getChildAt(number - 1)).findViewById(R.id.tv_answer)).setText(value.substring(1, value.length() - 1).replace("\\n", "\n")));
+    public void answer(View view) {
+        if (clipboardManager.hasPrimaryClip()) {
+
+            // Answer
+            webView.evaluateJavascript(
+                    String.format(JS_ANSWERS, number,
+                            clipboardManager.getPrimaryClip().getItemAt(0).getText().toString().trim().replace("\n", "").replace("\"", "'")),
+                    value -> {
+                        if ("null".equals(value)) {
+                            return;
+                        }
+                        ((TextView) (llQuestions.getChildAt(number - 1)).findViewById(R.id.tv_answer)).setText(value.substring(1, value.length() - 1).replace("\\n", "\n"));
+
+                        // Copy next question
+                        if (number < questions.length) {
+                            setNumber(number + 1);
+                            copyQuestion(number, questions[number - 1]);
+                            View v = llQuestions.getChildAt(number - 1);
+                            int y = v.getTop();
+                            if (svQuestions.getScrollY() + svQuestions.getHeight() < y + v.getHeight()) {
+                                svQuestions.smoothScrollTo(0, y);
+                            }
+                        }
+                    });
+
+        }
     }
 
     public void autoAnswer(View view) {
@@ -592,7 +599,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void matchHomework() {
         webView.evaluateJavascript(JS_QUESTIONS, value -> {
-            Log.d("\n\n\nvalue\n\n\n",value+"\n\n\n");
+            Log.d("\n\n\nvalue\n\n\n", value + "\n\n\n");
             String[] qAndA;
             if (!"null".equals(value) && (qAndA = value.substring(1, value.length() - 1).replace("\\n", "\n").split(",,,")).length == 2) {
                 // qAndA[0] - all questions.
@@ -729,7 +736,8 @@ public class MainActivity extends AppCompatActivity {
         toggleQuestionViewVisibility();
     }
 
-    private void toggleQuestionViewVisibility() {
+    @JavascriptInterface
+    public void toggleQuestionViewVisibility() {
         llWork.setVisibility(llWork.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
         llWebView.setVisibility(llWebView.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
     }
@@ -772,6 +780,11 @@ public class MainActivity extends AppCompatActivity {
 
             llQuestions.addView(layout.findViewById(R.id.ll_question));
         }
+    }
+
+    @JavascriptInterface
+    public void showToast(String text) {
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
     }
 
     private void touch(View view, float x, float y) {
