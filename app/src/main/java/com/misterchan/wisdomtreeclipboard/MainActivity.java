@@ -479,12 +479,14 @@ public class MainActivity extends AppCompatActivity {
             // Answer
             webView.evaluateJavascript(
                     String.format(JS_ANSWERS, number,
-                            clipboardManager.getPrimaryClip().getItemAt(0).getText().toString().trim().replace("\n", "").replace("\"", "'")),
+                            clipboardManager.getPrimaryClip().getItemAt(0).getText().toString()
+                                    .trim().replace("\n", "").replace("\"", "'")),
                     value -> {
                         if ("null".equals(value)) {
                             return;
                         }
-                        ((TextView) (llQuestions.getChildAt(number - 1)).findViewById(R.id.tv_answer)).setText(value.substring(1, value.length() - 1).replace("\\n", "\n"));
+                        ((TextView) (llQuestions.getChildAt(number - 1)).findViewById(R.id.tv_answer))
+                                .setText(value.substring(1, value.length() - 1).replace("\\n", "\n"));
 
                         // Copy next question
                         if (number < questions.length) {
