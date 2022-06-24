@@ -56,8 +56,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    ;
-
     private class GettingTikunetDocument extends Thread {
         @Override
         public void run() {
@@ -75,8 +73,6 @@ public class MainActivity extends AppCompatActivity {
             });
         }
     }
-
-    ;
 
     private static final String CHARSET_UTF8 = "UTF-8";
 
